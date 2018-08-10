@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>S464161-SPMReport</title>
+
+    <script type="text/javascript" src="https://rally1.rallydev.com/apps/2.1/sdk.js"></script>
+
+    <script type="text/javascript">
+        Rally.onReady(function () {
+                Ext.define("CustomApp",{extend:"Rally.app.App",componentCls:"app",launch:function(){var e=this.getContext().getProject().ObjectID;this.projectId=e,console.log("project:",e);var t=Ext.create("Ext.panel.Panel",{layout:"hbox",align:"stretch",padding:5,itemId:"filterPanel"}),a=Ext.create("Ext.panel.Panel",{title:"SPM Report",layout:{type:"vbox",align:"stretch",padding:5},padding:5,itemId:"mainPanel"});this.myMask=new Ext.LoadMask({msg:"Please wait...",target:a});var o=Ext.create("Rally.ui.combobox.ReleaseComboBox",{fieldLabel:"Choose Release",width:450,itemId:"releasaeComboBox",allowClear:!0,scope:this,listeners:{ready:function(e){var t=[e.getRecord()];this._initReport(t)},select:function(e,t){this._initReport(t)},scope:this}});t.add(o),this.add(t),this.add(a)},_initReport:function(e){var t=e[0].get("ObjectID"),a=e[0].get("Name");console.log("releaseId:",t,a),this._getInitiatives(a)},_getInitiatives:function(e){this.myMask.show(),Ext.create("Rally.data.wsapi.artifact.Store",{context:{projectScopeUp:!1,projectScopeDown:!0,project:"/project/"+this.projectId},models:["PortfolioItem/Feature"],fetch:["FormattedID","Name","Parent","ObjectID","Project","State","Type","Children","LeafStoryPlanEstimateTotal"],filters:[{property:"Release.Name",operator:"=",value:e}],limit:1/0}).load().then({success:function(e){var t=new Ext.util.MixedCollection,a=new Ext.util.MixedCollection,o=0;_.each(e,function(e){if(e.get("Parent")){var i=e.get("Parent").Name,n=e.get("Parent").Name;if(n=e.get("Parent").FormattedID+" - "+i,o+=e.get("LeafStoryPlanEstimateTotal"),t.containsKey(n)){var l=t.get(n);l+=e.get("LeafStoryPlanEstimateTotal"),t.replace(n,l)}else{var r=e.get("LeafStoryPlanEstimateTotal");t.add(n,r)}a.containsKey(i)||a.add(i,e.get("Parent"))}}),console.log("map",t),console.log("total",o);var i=[];t.eachKey(function(e,t){var n=e.substring(e.indexOf(" - ")+3);i.push({name:e,leafStoryPlanEstimate:t,project:a.get(n).Project.Name,percPlanned:(t/o*100).toFixed(2)+"%"})}),console.log("data",i),console.log("initiatives",a),this._createReportPanel(i)},scope:this})},_createReportPanel:function(e){var t=Ext.create("Ext.data.JsonStore",{fields:["name","leafStoryPlanEstimate","project","percPlanned"]});t.loadData(e);var a=Ext.create("Ext.grid.Panel",{title:"Initiative Capacity",height:768,width:650,viewConfig:{stripeRows:!0,enableTextSelection:!0},store:t,columns:[{text:"Initiative",flex:2,sortable:!0,dataIndex:"name"},{text:"LeafStoryPlanEstimate For Release",flex:1,sortable:!0,dataIndex:"leafStoryPlanEstimate"},{text:"Project",flex:1,sortable:!0,dataIndex:"project"},{text:"Capacity",width:120,sortable:!0,dataIndex:"percPlanned"}]});this.down("#mainPanel").removeAll(!0),this.down("#mainPanel").add(a),this.myMask.hide()}});
+
+            Rally.launchApp('CustomApp', {
+                name:"S464161-SPMReport",
+                parentRepos:"",
+                version:"0.1.1"
+            });
+
+        });
+    </script>
+
+
+    <style type="text/css">
+        
+    </style>
+</head>
+<body>
+</body>
+</html>
